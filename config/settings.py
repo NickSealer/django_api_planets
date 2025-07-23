@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from decouple import config as env_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -149,3 +150,16 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+"""EMAIL CONFIG"""
+if env_config('DJANGO_ENV') == 'production':
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = env_config('SMTP_HOST')
+    EMAIL_PORT = int(env_config('SMTP_PORT'))
+    EMAIL_USE_TLS = bool(env_config('SMTP_TLS'))
+    EMAIL_USE_SSL = bool(env_config('SMTP_SSL'))
+    EMAIL_HOST_USER = env_config('SMTP_USERNAME')
+    EMAIL_HOST_PASSWORD = env_config('SMTP_PASSWORD')
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = BASE_DIR / 'temp/email'
