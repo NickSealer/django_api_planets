@@ -3,8 +3,17 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Planet
 from .serializers import PlanetSerializer
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 class PlanetListCreateAPIView(APIView):
+  authentication_classes = [JWTAuthentication]
+  
+  def get_permissions(self):
+    if self.request.method == 'GET':
+      return [AllowAny()]
+    return [IsAuthenticated()]
+  
   PLANET_FIELDS = [field.name for field in Planet._meta.fields]
   
   def get_planets(self, request) -> list[Planet]:
@@ -31,6 +40,13 @@ class PlanetListCreateAPIView(APIView):
     return Response(serializer.errors, status=422)
   
 class PlanetRetrieveUpdateDestroyAPIView(APIView):
+  authentication_classes = [JWTAuthentication]
+  
+  def get_permissions(self):
+    if self.request.method == 'GET':
+      return [AllowAny()]
+    return [JWTAuthentication()]
+  
   def get(self, request, pk):
     planet = get_object_or_404(Planet, pk=pk)
     seriallizer = PlanetSerializer(planet)
