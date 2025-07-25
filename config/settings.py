@@ -163,3 +163,19 @@ if env_config('DJANGO_ENV') == 'production':
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
     EMAIL_FILE_PATH = BASE_DIR / 'temp/email'
+    
+    
+"""Celery config"""
+CELERY_BROKER_URL = env_config('REDIS_URL')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TASK_QUEUES = {
+    'emails': {
+        'exchange': 'emails',
+        'routing_key': 'emails',
+    },
+    'default': {
+        'exchange': 'default',
+        'routing_key': 'default',
+    }
+}
