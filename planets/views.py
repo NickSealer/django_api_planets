@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Planet
-from .mailers import new_planet_email
+from .tasks import send_new_planet_email_task
 from .serializers import PlanetSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -38,15 +38,16 @@ class PlanetListCreateAPIView(APIView):
     if serializer.is_valid():
       serializer.save()
       
-      email = new_planet_email.NewPlanetEmail(
-        subject="New Planet Created",
-        to_emails=[request.user.email],
-        from_email=env_config('SMTP_USERNAME'),
-        template='emails/new_planet.html',
-        text_content=f"New planet {serializer.data.get('name')} creado por: {request.user.username}",
-        context={'user': request.user.username, 'planet': serializer.data.get('name')}
-      )
-      email.send_email()
+      data = {
+        'subject': "New Planet Created",
+        'to_emails': [request.user.email],
+        'from_email': env_config('SMTP_USERNAME'),
+        'template': 'emails/new_planet.html',
+        'text_content': f"New planet {serializer.data.get('name')} creado por: {request.user.username}",
+        'context': {'user': request.user.username, 'planet': serializer.data.get('name')}
+      }
+      
+      send_new_planet_email_task.delay(data=data)
       
       return Response(serializer.data, status=201)
     
