@@ -8,6 +8,11 @@ from .serializers import PlanetSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
+
+from planets.services.assign_spacial_mission_service import AssignSpacialMissionService
+from planets.services.terraform_simulation_service import TerraformSimulationService
+from planets.queries.planet_queries import PlanetQueries
+
 class PlanetListCreateAPIView(APIView):
   authentication_classes = [JWTAuthentication]
   
@@ -80,3 +85,33 @@ class PlanetRetrieveUpdateDestroyAPIView(APIView):
     planet = get_object_or_404(Planet, pk=pk)
     planet.delete()
     return Response({'message': f"Planet {pk} deleted."}, status=204)
+  
+  # Example service to assign missions
+class AssignSpacialMission(APIView):
+  def post(self, request, pk):
+    planet = get_object_or_404(Planet, pk=pk)
+    result = AssignSpacialMissionService(planet=planet, request=request).execute()
+    return Response(result, status=200)
+
+# Example service in order to simulate terraforms according to atmosphere
+class TerraformSimulation(APIView):
+  def post(self, request):
+    result = TerraformSimulationService(request=request).execute()
+    return Response({'ready': result.ready, 'probability': result.probability, 'data': request.data}, status=200)
+
+# List basic info, filttering by has_life and temperature
+
+class BasicInfoWithFilters(APIView):
+  def get(self, request):
+    result = PlanetQueries.cold_basic_info()
+    return Response({"example_planets": result}, status=200)
+    
+
+# 7. Evaluar habitabilidad del planeta
+# en base a oxígeno, temperatura, presión, etc.
+
+class IsHabitable(APIView):
+  def get(self, request, pk):
+    result = PlanetQueries.is_habitable(pk=pk)
+    return Response(result, status=200)
+

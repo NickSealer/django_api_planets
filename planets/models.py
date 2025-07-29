@@ -1,4 +1,18 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+import re
+
+# Mixin Example. Use: MyModel(TimeStampMixin)
+class TimeStampMixin(models.Model):
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+  
+# Validator example.
+# from .validators import validate_name_no_numbers
+# Use: name = model.CharField(max_length=100, validators=[validate_name_no_mumbers])
+def validate_name_no_mumbers(name: str):
+  if re.search(r'\d', name):
+    raise ValidationError('Name error, name should not have numbers.')
 
 class Planet(models.Model):
   PLANET_TYPES = [
